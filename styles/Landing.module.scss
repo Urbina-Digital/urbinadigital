@@ -1,0 +1,30 @@
+.landingwrap {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  // justify-content: center;
+}
+
+.header {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  margin: 3rem 0 6rem 0;
+  pointer-events: all;
+
+  > header {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+
+    > h1 {
+      font-size: 7em;
+      color: skyblue;
+    }
+  }
+}

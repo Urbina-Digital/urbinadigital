@@ -1,0 +1,25 @@
+.home_wrap {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+  padding: 2vw 1vw;
+}
+
+.title a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+.title a:hover,
+.title a:focus,
+.title a:active {
+  text-decoration: underline;
+}
+
+
+@media (max-width: 600px) {
+  .grid {
+    width: 100%;
+    flex-direction: column;
+  }
+}

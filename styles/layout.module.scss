@@ -1,0 +1,45 @@
+.container {
+  // overflow: hidden;
+}
+
+.navbar {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  background-color: transparent;
+  z-index: 10;
+  padding-right: 1.825rem;
+  padding-left: 1rem;
+  height: 2.95rem;
+  background-color: hsl(var(--n) / var(--tw-bg-opacity));
+}
+
+.navheader {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+
+  > ul > li > details > summary::after {
+    display: none !important;
+  }
+}
+
+.iconwrap {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+
+  &:last-child {
+    img {
+      transform: rotate(45deg);
+      filter: invert(57%) sepia(72%) saturate(327%) hue-rotate(358deg) brightness(101%) contrast(99%);
+    }
+  }
+}
