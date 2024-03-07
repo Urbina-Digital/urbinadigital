@@ -196,6 +196,7 @@ const Saturn = () => {
       // draw game state
       // request new frame
       window.requestAnimationFrame(animate);
+
       // clear canvas "fill with black color"
       ctx.fillStyle = 'rgba(0, 0, 0, 1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -240,10 +241,10 @@ const Saturn = () => {
       ctx.fillStyle = 'rgba(255, 255, 255, .10)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw green squares at the start of each section
+      // Draw green squares at the start of each full-width section
       for (let i = 0; i < 5; i++) {
         ctx.fillStyle = 'green';
-        ctx.fillRect(i * columnWidth, 0, 100, 100);
+        ctx.fillRect(i * canvas.width - avatar.distanceTraveled, 0, 100, 100);
       }
 
       // draw avatar
