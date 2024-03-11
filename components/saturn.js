@@ -1,14 +1,21 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Sprite, Avatar } from '../lib/Sprite';
+import Achievement from '../components/achievement';
 import styles from '../styles/saturn.module.scss';
-import { handler } from 'daisyui';
 
 const Saturn = () => {
   const canvasRef = useRef(null);
   const keysRef = useRef({});
-  const [dialogBox, setDialogBox] = useState({ heading: 'Dosc', text: 'It was a zipadeedoodah kind of day... ' });
+  const [dialogBox, setDialogBox] = useState({
+    heading: 'Dosc',
+    text: 'It was a zipadeedoodah kind of day... ' });
   const [loadingText, setLoadingText] = useState('Loading...');
   const [showDialogBox, setShowDialogBox] = useState(false);
+  const [showAchievement, setShowAchievement] = useState(false);
+  const [achievement, setAchievement] = useState({
+    heading: 'Achievement Unlocked',
+    text: 'You have unlocked the achievement "First Steps"! '
+  });
   const [isFTU, setFTUstatus] = useState(true);
   const [dialogBoxTextIndex, setDialogBoxTextIndex] = useState(0);
   const [dialogBoxSpeed, setDialogBoxSpeed] = useState(44); // speed in milliseconds
@@ -16,6 +23,7 @@ const Saturn = () => {
   const [assets, setAssets] = useState({});
   const [loadingPercentage, setLoadingPercentage] = useState(0);
   const [loadingBarColor, setLoadingBarColor] = useState('red');
+  const [audioData, setAudioData] = useState({});
 
   const loadAsset = (src) => {
     return new Promise((resolve, reject) => {
@@ -43,9 +51,16 @@ const Saturn = () => {
       foregroundTexture: '/CITYBG/bg3.png',
       avatarIdle: '/merchant/idle.png',
       avatarWalk: '/merchant/walk.png',
+      toasterBotIdle: '/Toaster Bot/idle.png',
+      toasterBotRun: '/Toaster Bot/run.png',
+      stormHeadIdle: '/stormhead/idle.png',
+      stormHeadRun: '/stormhead/run.png',
       walkAudio: '/Sprite__walking2.wav',
       jumpAudio: '/Sprite__jump2.wav',
+      dialogAudio: '/dialogBox__typing.wav',
       bgMusic: '/Particle Mass--test.wav',
+      achievementAudio: '/achievementJingle.wav',
+      iconAchievement: '/icons/achievementIcon.png',
     };
   
     const totalAssets = Object.keys(assetSources).length;
@@ -63,16 +78,13 @@ const Saturn = () => {
       .then((entries) => {
         const assetObj = Object.fromEntries(entries);
         setAssets(assetObj);
-
         // Simulate a loading delay
-        // const loadingDelay = 1000; // adjust as needed
-        // const loadingTimer = setTimeout(() => {
-        //   // setIsLoading(false);
-        // }, loadingDelay);
+        console.log('what is assets ->', assetObj);
 
+      }).then(() => { 
         setLoadingText('Click Anywhere to Begin');
-      })
-      .catch((error) => {
+
+      }).catch((error) => {
         console.error('Error loading assets:', error);
       });
 
@@ -137,13 +149,18 @@ const Saturn = () => {
     const backgroundMusic = assets.bgMusic.asset;
     const walkSound = assets.walkAudio.asset;
     const jumpSound = assets.jumpAudio.asset;
+    const dialogSound = assets.dialogAudio.asset;
+    const achievementSound = assets.achievementAudio.asset;
 
     walkSound.volume = 0.7; // 70% volume
     jumpSound.volume = .65; // Full volume
     backgroundMusic.volume = 0.25; // 50% volume
+    dialogSound.volume = 0.5; // 50% volume
+    achievementSound.volume = 0.15; // 50% volume
 
     backgroundMusic.loop = true;
     backgroundMusic.play();
+    // dialogSound.loop = true; 
 
     walkSound.loop = true;
     // jumpSound.loop = true;
@@ -160,16 +177,17 @@ const Saturn = () => {
       image: assets.avatarIdle.asset,
       position: {
         x: 0,
-        y: 100, 
+        y: 400, 
       },
       velocity: {
         x: 0,
         y: 0,
       },
       framesMax: 4,
+      frameOrientation: 'horizontal',
       scale: 3,
       offset: {
-        x: 28,
+        x: 0,
         y: 80,
       },
       sprites: {
@@ -183,8 +201,71 @@ const Saturn = () => {
         },
       },
     });
-  
-    // avatar.draw();
+
+    const toastBot = new Avatar({
+      context: ctx,
+      image: assets.toasterBotIdle.asset,
+      position: {
+        x: 400,
+        y: 250, 
+      },
+      velocity: {
+        x: 0,
+        y: 0,
+      },
+      framesMax: 5,
+      frameOrientation: 'horizontal',
+      direction: 'left',
+      scale: 2,
+      offset: {
+        x: 4,
+        y: 16,
+      },
+      sprites: {
+        idle: {
+          img: assets.toasterBotIdle.asset,
+          framesMax: 5,
+        },
+        walk: {
+          img: assets.toasterBotRun.asset,
+          framesMax: 8,
+        },
+      },
+    });
+    
+    const stormHead = new Avatar({
+      context: ctx,
+      image: assets.stormHeadIdle.asset,
+      position: {
+        x: 200,
+        y: -800, 
+      },
+      velocity: {
+        x: 0,
+        y: 0,
+      },
+      framesMax: 9,
+      direction: 'left',
+      frameOrientation: 'vertical',
+      scale: 2,
+      offset: {
+        x: 0,
+        y: -868,
+      },
+      sprites: {
+        idle: {
+          img: assets.stormHeadIdle.asset,
+          framesMax: 9,
+        },
+        walk: {
+          img: assets.stormHeadRun.asset,
+          framesMax: 10,
+        },
+      },
+    });
+
+    // toastBot.draw();
+    // stormHead.draw();
 
     // animation loop
     const animate = () => {
@@ -203,16 +284,21 @@ const Saturn = () => {
       
       // Adjust the x position of the backgrounds
       const backgrounds = [backgroundSkyline, backgroundBuildingsFar, backgroundBuildingsNear, foregroundTexture];
-      const speedMultipliers = [0.1, 0.25, 0.5, .75]; // adjust these values as needed
+      const speedMultipliers = [0.1, 0.25, 0.5, .7]; // adjust these values as needed
 
       // parallax effect
       backgrounds.forEach((background, i) => {
         // If the avatar is 32px from either side of the canvas, adjust the background's x position based on the avatar's velocity
         if (avatar.position.x <= 32 || avatar.position.x >= canvas.width - 160) {
           background.position.x -= avatar.velocity.x * speedMultipliers[i];
+          toastBot.position.x -= avatar.velocity.x * speedMultipliers[3];
+          stormHead.position.x -= avatar.velocity.x * speedMultipliers[3];
         } else {
           // Apply a smaller parallax effect when the avatar is in the middle columns
-          background.position.x -= avatar.velocity.x * speedMultipliers[i] * 0.5; // adjust the multiplier as needed
+          background.position.x -= avatar.velocity.x * speedMultipliers[i] * 0.8; // adjust the multiplier as needed
+          toastBot.position.x -= avatar.velocity.x * speedMultipliers[3] * 0.8; // adjust the multiplier as needed
+          stormHead.position.x -= avatar.velocity.x * speedMultipliers[3] * 0.8; // adjust the multiplier as needed
+
         }
 
         // Calculate the width of a single frame of the sprite image
@@ -247,18 +333,33 @@ const Saturn = () => {
         ctx.fillRect(i * canvas.width - avatar.distanceTraveled, 0, 100, 100);
       }
 
+      toastBot.update();
+      toastBot.velocity.x = 0;
+      toastBot.switchSprite('idle');
+      
+      stormHead.update();
+      stormHead.velocity.x = 0;
+      stormHead.switchSprite('idle');
+
+      // console.log('where is stormhead ->', stormHead.position.y, '\n his velocity: ', stormHead.velocity.y, '\n his height: ', stormHead.height);
+
       // draw avatar
       avatar.update();
       avatar.velocity.x = 0;
       avatar.switchSprite('idle');
-      
+
+      // console.log('where is avatar ->', avatar.position.y, '\n his velocity: ', avatar.velocity.y, '\n his height: ', avatar.height);
+
       if ((keysRef.current[' '])) {
         // reset jump sound
         // jumpSound.pause();
         // jumpSound.currentTime = 0;
 
         // no jumping while avatar is in air
-        if ((avatar.position.y + avatar.height + 16 < canvas.height)) return;
+        if ((avatar.position.y + avatar.height + 16 < canvas.height)) {
+          console.log('didnt jump'); 
+          return;
+        }
         avatar.switchSprite('idle');
         avatar.velocity.y = -16;
         if (!jumpSound.paused) {
@@ -277,12 +378,17 @@ const Saturn = () => {
       if ((keysRef.current['ArrowLeft'] && avatar.lastKey === 'ArrowLeft') || (keysRef.current['a'] && avatar.lastKey === 'a')) {
         avatar.direction = 'left';
         avatar.switchSprite('walk');
-        avatar.velocity.x -= 3;
+        avatar.velocity.x -= 1;
+        toastBot.velocity.x += 1;
+        stormHead.velocity.x += 1;
         walkSound.play();
       } else if ((keysRef.current['ArrowRight'] && avatar.lastKey === 'ArrowRight') || (keysRef.current['d'] && avatar.lastKey === 'd')) {
         avatar.direction = 'right';
         avatar.switchSprite('walk');
-        avatar.velocity.x += 3;
+        avatar.velocity.x += 1;
+        toastBot.velocity.x -= 1;
+        stormHead.velocity.x -= 1;
+
         walkSound.play();
       } else {
         avatar.switchSprite('idle');
@@ -306,6 +412,17 @@ const Saturn = () => {
               setDialogBoxTextIndex(0);
             }
             return !prevShowDialogBox;
+          });
+          break;
+        case '3':
+          if (showDialogBox) return;
+          avatar.lastKey = '3';
+          setShowAchievement(prevShowAchievement => {
+            // If the dialog box is currently shown, reset the text index when closing it
+            // if (prevShowAchievement) {
+            //   setDialogBoxTextIndex(0);
+            // }
+            return !prevShowAchievement;
           });
           break;
         case 'ArrowUp':
@@ -389,47 +506,84 @@ const Saturn = () => {
     };
   }, [isLoading, assets]);
 
+  // Intro after load
   useEffect(() => {
     if (!isLoading && isFTU && !showDialogBox) {
       const timer = setTimeout(() => {
         setShowDialogBox(true);
         setFTUstatus(false);
-      }, 1000); // show after 1 seconds
-      return () => clearTimeout(timer);
+      }, 800); // show after .8 seconds
+
+      const timer2 = setTimeout(() => {
+        if (!showDialogBox) setShowAchievement(true);
+      }, 3000); // show first achievement after 3 seconds
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(timer2);
+      };
     }
   }, [showDialogBox, isLoading, isFTU]);
-
+  
+  // auto hide acheivements
   useEffect(() => {
+    console.log('triggering achievement');
+    if (!isLoading && !isFTU && !showDialogBox && showAchievement) {
+      assets.achievementAudio.asset.play();
+      const timer = setTimeout(() => {
+        setShowAchievement(false);
+        assets.achievementAudio.asset.currentTime = 0;
+      }, 2000); // hide after 2 seconds
+
+      return () => clearTimeout(timer);
+
+    }
+  }, [showAchievement, isLoading, isFTU, showDialogBox]);
+
+  // binding autotype and sound to dialog box
+  useEffect(() => {
+    // const dialogSound = assets.dialogAudio.asset;
+
     if (showDialogBox && dialogBoxTextIndex < dialogBox.text.length) {
       const timer = setTimeout(() => {
+        assets.dialogAudio.asset.play();
         setDialogBoxTextIndex(prevIndex => prevIndex + 1);
+        assets.dialogAudio.asset.currentTime = 0;
       }, dialogBoxSpeed);
 
       return () => clearTimeout(timer);
     }
-  }, [showDialogBox, dialogBoxTextIndex, dialogBox.text.length, dialogBoxSpeed]);
+  }, [!isLoading, assets, showDialogBox, dialogBoxTextIndex, dialogBox.text.length, dialogBoxSpeed]);
 
+  // auto close dialog box
   useEffect(() => {
     if (showDialogBox && dialogBoxTextIndex === dialogBox.text.length) {
       const timer = setTimeout(() => {
         setShowDialogBox(false);
-      }, 2000); // hide after 2 seconds
+        setDialogBoxTextIndex(0);
+        assets.dialogAudio.asset.pause();
+        assets.dialogAudio.asset.currentTime = 0;
+
+      }, 1500); // hide after 2 seconds
 
       return () => clearTimeout(timer);
     }
   }, [showDialogBox, dialogBoxTextIndex, dialogBox.text.length]);
+  
 
 
   return (
     <div className={styles.saturn}>
-    {isLoading && (
-      <div className={styles.loading}>
-        <h1>{ loadingText }</h1>
-        <div className={styles.loading__wrap}>
-          <div className={styles.loading__bar} style={{ width: `${loadingPercentage}%`, backgroundColor: loadingBarColor }}></div>
+      {showAchievement && (
+        <Achievement title={achievement.heading} description={achievement.text} icon={assets.iconAchievement.asset} />
+      )}
+      {isLoading && (
+        <div className={styles.loading}>
+          <h1>{ loadingText }</h1>
+          <div className={styles.loading__wrap}>
+            <div className={styles.loading__bar} style={{ width: `${loadingPercentage}%`, backgroundColor: loadingBarColor }}></div>
+          </div>
         </div>
-      </div>
-    )}
+      )}
     <canvas className={styles.saturn__canvas} ref={canvasRef} width={800} height={600} />
     {showDialogBox && (
       <div className={styles.saturn__dialog}>
